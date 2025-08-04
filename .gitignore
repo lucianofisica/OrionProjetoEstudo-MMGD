@@ -1,0 +1,23 @@
+#### Esse arquivo contém as extensões que irão ser ignoradas
+#### quando efetuarmos "o git add .", por exemplo.
+
+# Ignorar arquivos temporários do sistema (caso precise):
+*.swp
+*.tmp
+
+# Ignorar os arquivos pesados:
+*.zip
+*.csv
+
+# Ignorar PDFs:
+*.pdf
+
+# Ignorar pastas ocultas:
+#.*/
+# Ignorar a pasta .ipynb_checkpoints, que serve para salvamento automático do jupyter.
+**/.ipynb_checkpoints/
+# Os dois asteriscos servem para ignorar essa pasta em qualquer local do projeto, inclusive dentro de subpastas.
+
+
+
+
