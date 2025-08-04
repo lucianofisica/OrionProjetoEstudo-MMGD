@@ -18,6 +18,7 @@
 **/.ipynb_checkpoints/
 # Os dois asteriscos servem para ignorar essa pasta em qualquer local do projeto, inclusive dentro de subpastas.
 
-
+# Ignoraar outros arquivos:
+empreendimento.md
 
 
