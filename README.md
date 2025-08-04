@@ -8,7 +8,7 @@ Este projeto tem como objetivo desenvolver um pipeline completo de Engenharia de
 
 A **Geração Distribuída (GD)** é um modelo descentralizado de produção de energia elétrica, regulamentado pela **Resolução Normativa ANEEL nº 482/2012**, que permite aos consumidores brasileiros gerarem sua própria energia a partir de **fontes renováveis** — como a energia solar fotovoltaica — no local ou nas proximidades do ponto de consumo. 
 
-A energia excedente pode ser injetada na rede da distribuidora local, sendo posteriormente compensada na fatura do consumidor por meio do **Sistema de Compensação de Energia Elétrica (SCEE)**. Isso significa que a rede elétrica funciona como uma espécie de “bateria virtual”: durante o dia, o sistema gera energia que pode ser usada à noite ou em outro momento, inclusive em outras unidades consumidoras do mesmo titular, dependendo da modalidade de adesão.
+A energia excedente pode ser injetada na rede da distribuidora local, sendo posteriormente compensada na fatura do consumidor por meio do **Sistema de Compensação de Energia Elétrica (SCEE)**. Isso significa que a rede elétrica funciona como uma espécie de "créditos gerados”: durante o dia, o sistema gera energia que pode ser usada à noite ou em outro momento, inclusive em outras unidades consumidoras do mesmo titular, dependendo da modalidade de adesão.
 
 Esse modelo promove benefícios como:
 - Redução na conta de energia;
