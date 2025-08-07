@@ -95,6 +95,6 @@ O arquivo `.csv` utilizado neste projeto contém **12 colunas** e **3.643.608 de
 📧 [luciano.bezerra@fis.ufal.br](mailto:luciano.bezerra@fis.ufal.br)  
 🔗 [LinkedIn](https://www.linkedin.com/in/luciano-j-r-bezerra-jr-002634141/)
 
-> Me chamo Luciano, sou físico e também sou aluno do curso de engenharia de software pela Estácio. Tenho experiência em Física da Matéria Condensada, sou usuário linux e programo em C e Fortran desde 2015 no meio acadêmico. Além disso, já utilizei ferramentas Open Source para análise e visualização de dados tais como Python, Gnuplot e Grace. Já participei de outros cursos complementares como uma school de visualização de dados, onde tive um primeiro contato com Tableau e Power BI, Django Girls, Imersão Alura, GCP e New Relic. Tenho interesse na área de Dados, DevOps e em Desenvolvimento.
+> Me chamo Luciano, sou físico e também sou aluno do curso de Engenharia de Software pela Estácio. Tenho experiência em Física da Matéria Condensada, sou usuário linux e programo em C e Fortran desde 2015 no meio acadêmico. Além disso, já utilizei ferramentas Open Source para análise e visualização de dados tais como Python, Gnuplot e Grace. Já participei de outros cursos complementares como uma school de visualização de dados, onde tive um primeiro contato com Tableau e Power BI, Django Girls, Imersão Alura, GCP e New Relic. Tenho interesse na área de Dados, DevOps e em Desenvolvimento.
 
 ---
