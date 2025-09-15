@@ -1,16 +1,30 @@
-version: '3.8'
+version: "3.8"
 
-# This Docker Compose file sets up the MinIO Data Lake service.
+# This Docker Compose file sets up the full data pipeline infrastructure,
+# including MinIO, Hive, Trino, Airflow, and Superset.
 #
 # To run:
-#   1. Create a .env file based on .env.example
-#   2. Run 'docker-compose up -d'
+#   1. Create a .env file from .env.example.
+#   2. Run 'docker-compose up -d --build'
 #
-# The MinIO UI will be available at http://localhost:9001
+# UI Endpoints:
+#   - MinIO Console: http://localhost:9001
+#   - Trino UI: http://localhost:8080
+#   - Airflow UI: http://localhost:8081
+#   - Superset UI: http://localhost:8088
 
 services:
+  # --- dbt Image Builder ---
+  dbt:
+    build:
+      context: ./dbt
+      dockerfile: Dockerfile
+    image: aneel-pipeline/dbt:latest
+
+  # --- Data Lake ---
   datalake:
-    image: minio/minio:RELEASE.2025-02-03T21-03-04Z-cpuv1
+    image: minio/minio:RELEASE.2023-09-04T19-57-37Z
+    hostname: datalake
     volumes:
       - minio_data:/data
     networks:
@@ -22,11 +36,163 @@ services:
     ports:
       - "9000:9000"
       - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    restart: on-failure
+
+  # --- Metadata Store ---
+  hive-metastore-db:
+    image: postgres:13
+    hostname: hive-metastore-db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - datalakehouse
+    environment:
+      - POSTGRES_DB=metastore
+      - POSTGRES_USER=hive
+      - POSTGRES_PASSWORD=hive
+    restart: on-failure
+
+  hive-metastore:
+    image: bitnami/hive:3.1.2
+    hostname: hive-metastore
+    depends_on:
+      - hive-metastore-db
+      - datalake
+    networks:
+      - datalakehouse
+    environment:
+      - HIVE_METASTORE_DATABASE_HOST=hive-metastore-db
+      - HIVE_METASTORE_DATABASE_PORT=5432
+      - HIVE_METASTORE_DATABASE_NAME=metastore
+      - HIVE_METASTORE_DATABASE_USER=hive
+      - HIVE_METASTORE_DATABASE_PASSWORD=hive
+      - HIVE_METASTORE_AWS_ACCESS_KEY=${MINIO_ROOT_USER}
+      - HIVE_METASTORE_AWS_SECRET_KEY=${MINIO_ROOT_PASSWORD}
+      - HIVE_METASTORE_S3_ENDPOINT=http://datalake:9000
+      - HIVE_METASTORE_S3_PATH_STYLE_ACCESS=true
+      - HIVE_METASTORE_WAREHOUSE_DIR=s3a://warehouse/
+    ports:
+      - "9083:9083"
+    restart: on-failure
+
+  # --- Query Engine ---
+  trino-coordinator:
+    image: trinodb/trino:435
+    hostname: trino-coordinator
+    depends_on:
+      - hive-metastore
+      - datalake
+    volumes:
+      - ./trino:/etc/trino
+    networks:
+      - datalakehouse
+    ports:
+      - "8080:8080"
+    restart: on-failure
+
+  # --- Orchestrator ---
+  redis:
+    image: redis:7.0
+    hostname: redis
+    networks:
+      - datalakehouse
+    restart: on-failure
+
+  airflow-init:
+    image: apache/airflow:2.7.1
+    depends_on:
+      - hive-metastore-db
+    networks:
+      - datalakehouse
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@hive-metastore-db:5432/airflow
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    command: >
+      bash -c "airflow db init && airflow users create --username admin --password admin --firstname Anonymous --lastname User --role Admin --email admin@example.org"
+
+  airflow-webserver:
+    image: apache/airflow:2.7.1
+    hostname: airflow-webserver
+    depends_on:
+      - airflow-init
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - airflow_logs:/opt/airflow/logs
+    networks:
+      - datalakehouse
+    ports:
+      - "8081:8080"
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@hive-metastore-db:5432/airflow
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    command: airflow webserver
+    restart: on-failure
+
+  airflow-scheduler:
+    image: apache/airflow:2.7.1
+    hostname: airflow-scheduler
+    depends_on:
+      - airflow-init
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - airflow_logs:/opt/airflow/logs
+    networks:
+      - datalakehouse
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@hive-metastore-db:5432/airflow
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    command: airflow scheduler
+    restart: on-failure
+
+  # --- Visualization ---
+  superset-db:
+    image: postgres:13
+    hostname: superset-db
+    volumes:
+      - superset_db_data:/var/lib/postgresql/data
+    networks:
+      - datalakehouse
+    environment:
+      - POSTGRES_DB=superset
+      - POSTGRES_USER=superset
+      - POSTGRES_PASSWORD=superset
+    restart: on-failure
+
+  superset:
+    image: amancevice/superset:2.1.0
+    hostname: superset
+    depends_on:
+      - superset-db
+      - trino-coordinator
+    networks:
+      - datalakehouse
+    ports:
+      - "8088:8088"
+    environment:
+      - SUPERSET_SECRET_KEY=your_super_secret_key_change_me
+      - SUPERSET_CONFIG_PATH=/etc/superset/superset_config.py
+      - DB_HOST=superset-db
+      - DB_PORT=5432
+      - DB_NAME=superset
+      - DB_USER=superset
+      - DB_PASS=superset
+    volumes:
+      - ./superset:/etc/superset
     restart: on-failure
 
 volumes:
   minio_data:
-    driver: local
+  postgres_data:
+  airflow_logs:
+  superset_db_data:
 
 networks:
   datalakehouse:

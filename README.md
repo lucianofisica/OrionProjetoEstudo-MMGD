@@ -71,15 +71,79 @@ O arquivo `.csv` utilizado neste projeto contém **12 colunas** e **3.643.608 de
 | Fase | Etapa                                    | Ferramenta(s)                       | Descrição                                                                                                                                             | Status Atual   |
 |------|------------------------------------------|-------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|
 | 1    | Coleta de Dados Reais sobre MMGD         | [Download em Site](https://dadosabertos.aneel.gov.br/dataset/relacao-de-empreendimentos-de-geracao-distribuida) | Dados reais com grande volume (3.643.608 linhas), com estrutura definida e salva em `.csv`.                                                          | ✅ Feito       |
-| 2    | Upload de Dados Reais no Data Lake       | MinIO                               | Upload de dados da ANEEL no bucket `landing-zone` (camada Bronze).                                                                                    | ✅ Feito       |
-| 3    | Exploração e Validação Inicial           | DuckDB                              | Conexão local ou via S3 para análise exploratória dos dados (contagem, tipos, estatísticas, consistência básica).                                     | 🔄 Em andamento |
-| 4    | Registro de Metadados                    | Hive Metastore                      | Criação de tabelas externas vinculadas ao dataset armazenado no MinIO (definindo esquemas, particionamentos etc).                                     | ⚠ Não iniciada |
-| 5    | Consultas SQL Distribuídas               | Trino (Presto)                      | Execução de queries sobre os dados brutos e transformados, conectando Trino ao Hive Metastore e aos buckets do MinIO.                                 | ⚠ Não iniciada |
-| 6    | Transformações e Modelagem de Dados      | DBT                                 | Criação de modelos em três camadas: `staging` (tipos), `intermediate` (limpeza/enriquecimento) e `mart` (fatos/dimensões).                            | ⚠ Não iniciada |
-| 7    | Execução Automatizada do Pipeline        | Apache Airflow                      | Orquestração de todas as etapas anteriores em um DAG com tarefas encadeadas (geração, upload, validação, DBT etc.).                                   | ⚠ Não iniciada |
-| 8    | Visualização e Análise de Métricas (op.) | Superset/Metabase                   | Criação de dashboards com métricas extraídas das tabelas da camada Gold para análise de negócio ou exploração interativa.                             | ⚠ Não iniciada |
+| 2    | Upload de Dados Reais no Data Lake       | MinIO / Script de Upload            | Upload de dados da ANEEL no bucket `landing-zone` (camada Bronze).                                                                                    | ✅ Feito       |
+| 3    | Exploração e Validação Inicial           | DuckDB / Script Python              | Conexão via S3 para análise exploratória dos dados (contagem, tipos, estatísticas, consistência básica).                                            | ✅ Feito       |
+| 4    | Registro de Metadados                    | Hive Metastore / Trino              | Criação de tabelas externas vinculadas ao dataset armazenado no MinIO (definindo esquemas, particionamentos etc).                                     | ✅ Feito       |
+| 5    | Consultas SQL Distribuídas               | Trino                               | Execução de queries sobre os dados brutos e transformados, conectando Trino ao Hive Metastore e aos buckets do MinIO.                                 | ✅ Feito       |
+| 6    | Transformações e Modelagem de Dados      | dbt (Data Build Tool)               | Criação de modelos em três camadas: `bronze` (fonte), `silver` (staging/limpeza) e `gold` (marts/agregados).                                          | ✅ Feito       |
+| 7    | Execução Automatizada do Pipeline        | Apache Airflow                      | Orquestração de todas as etapas anteriores em um DAG com tarefas encadeadas (sensor de arquivo, execução do dbt, testes).                               | ✅ Feito       |
+| 8    | Visualização e Análise de Métricas       | Superset                            | Criação de dashboards com métricas extraídas das tabelas da camada Gold para análise de negócio ou exploração interativa.                             | ✅ Feito       |
 
 ---
+
+## 🚀 Como Executar o Pipeline
+
+1.  **Pré-requisitos:**
+    *   Docker e Docker Compose instalados.
+    *   Um arquivo de dados da ANEEL (ex: `dados-aneel.csv`).
+
+2.  **Setup Inicial:**
+    *   Clone o repositório.
+    *   Crie um arquivo `.env` a partir do `.env.example` e, se desejar, altere as senhas.
+    *   Execute `docker-compose up --build -d` para iniciar todos os serviços (MinIO, Trino, Airflow, Superset, etc.). Pode levar alguns minutos na primeira vez.
+
+3.  **Carregar os Dados Brutos:**
+    *   Use o script `upload_data.sh` para enviar seu arquivo de dados para o MinIO:
+      ```bash
+      ./upload_data.sh /caminho/para/seus/dados-aneel.csv
+      ```
+
+4.  **Registrar a Tabela Externa:**
+    *   Execute o script para criar a tabela no Hive Metastore via Trino:
+      ```bash
+      pip install -r requirements.txt
+      python scripts/criar_tabela_externa.py
+      ```
+
+5.  **Executar o Pipeline de Transformação via Airflow:**
+    *   Acesse a UI do Airflow em `http://localhost:8081` (login: `admin`, senha: `admin`).
+    *   **Configure a Conexão S3:**
+        *   Vá para `Admin -> Connections -> Add a new record`.
+        *   **Connection ID:** `minio_s3_connection`
+        *   **Connection Type:** `Amazon S3`
+        *   **Extra:** `{"host": "http://datalake:9000", "aws_access_key_id": "minioadmin", "aws_secret_access_key": "minioadmin"}`
+    *   **Configure as Variáveis do Airflow:**
+        *   Vá para `Admin -> Variables -> Add a new record`.
+        *   Crie a variável `DBT_TRINO_HOST` com o valor `trino-coordinator`.
+    *   Ative a DAG `aneel_mmgd_pipeline` e dispare uma execução manual.
+
+## 📊 Visualização e Análise de Métricas (Superset)
+
+Após a execução bem-sucedida do pipeline no Airflow, os dados transformados estarão disponíveis na camada `gold`. Você pode explorá-los usando o Superset.
+
+1.  **Acesse o Superset:**
+    *   Abra `http://localhost:8088` no seu navegador.
+    *   Faça login com as credenciais padrão: `admin` / `admin`.
+
+2.  **Conecte o Superset ao Trino:**
+    *   Vá para `Settings -> Database Connections -> + Database`.
+    *   Selecione `Trino` como o banco de dados.
+    *   **SQLAlchemy URI:** `trino://admin@trino-coordinator:8080/hive`
+    *   Clique em `Test Connection` para verificar se funciona e, em seguida, em `Connect`.
+
+3.  **Adicione um Dataset:**
+    *   Vá para `Datasets -> + Dataset`.
+    *   **Database:** Selecione a conexão Trino que você acabou de criar.
+    *   **Schema:** `gold`
+    *   **Table:** `potencia_total_por_fabricante`
+    *   Clique em `Add`.
+
+4.  **Crie um Gráfico:**
+    *   Você será redirecionado para a página de exploração do novo dataset.
+    *   **Visualization Type:** `Bar Chart`
+    *   **X-Axis:** `fabricante_modulo`
+    *   **Metrics:** `SUM(potencia_total_instalada_kw)`
+    *   Clique em `Create Chart`. Agora você pode visualizar a potência total por fabricante e salvar seu gráfico em um dashboard.
 
 ## 👥 Autores
 

@@ -1,7 +1,24 @@
 # This file contains the Python dependencies for the project's scripts.
 # Install them using: pip install -r requirements.txt
 
+# Data manipulation and exploration
 pandas
 duckdb
 boto3
 s3fs
+python-dotenv
+
+# Data transformation
+dbt-core
+dbt-trino
+
+# Data orchestration
+apache-airflow
+apache-airflow-providers-docker
+
+# Data visualization
+apache-superset
+psycopg2-binary
+
+# Trino client
+trino

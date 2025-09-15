@@ -1,0 +1,15 @@
+# This file defines the connection profiles for dbt.
+# It is configured to read connection details from environment variables,
+# which makes it portable and secure, especially when used with Airflow.
+
+aneel_pipeline_profile:
+  target: dev
+  outputs:
+    dev:
+      type: trino
+      host: "{{ env_var('DBT_TRINO_HOST', 'trino-coordinator') }}"
+      port: "{{ env_var('DBT_TRINO_PORT', 8080) | int }}"
+      user: "{{ env_var('DBT_TRINO_USER', 'admin') }}"
+      catalog: hive
+      schema: bronze
+      threads: "{{ env_var('DBT_THREADS', 4) | int }}"

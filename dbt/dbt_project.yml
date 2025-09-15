@@ -1,0 +1,37 @@
+# This file defines the configuration for your dbt project.
+
+name: 'aneel_pipeline'
+version: '1.0.0'
+config-version: 2
+
+# This setting configures which dbt profile to use.
+profile: 'aneel_pipeline_profile'
+
+# These are paths to where dbt will look for different types of files.
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+# You can define target directories here.
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Configuring models
+# In this project, we define different materialization strategies for each layer.
+models:
+  aneel_pipeline:
+    # Staging models are intermediate and can be ephemeral (views) or tables.
+    # We will use tables here to improve performance on the large dataset.
+    staging:
+      +materialized: table
+      +schema: silver # The output schema for staging models
+
+    # Marts models are the final output, materialized as tables for BI tools.
+    marts:
+      +materialized: table
+      +schema: gold # The output schema for mart models

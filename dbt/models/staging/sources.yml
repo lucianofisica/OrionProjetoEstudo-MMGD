@@ -1,0 +1,41 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: "Raw data layer from MinIO, registered via Hive Metastore."
+    schema: bronze
+    tables:
+      - name: mmgd_aneel_raw
+        description: "Raw CSV data of micro and mini distributed generation from ANEEL."
+        external:
+          location: "s3a://landing-zone/"
+          row_format: "csv"
+          options:
+            skip_header_row: "true"
+        columns:
+          - name: _id
+            description: "Unique identifier from the raw file."
+          - name: DatGeracaoConjuntoDados
+            description: "Date of data generation."
+          - name: CodGeracaoDistribuida
+            description: "Unique code for the generation unit."
+          - name: MdaAreaArranjo
+            description: "Array area in square meters."
+          - name: MdaPotenciaInstalada
+            description: "Installed power in kW."
+          - name: NomFabricanteModulo
+            description: "Module manufacturer name."
+          - name: NomFabricanteInversor
+            description: "Inverter manufacturer name."
+          - name: DatConexao
+            description: "Connection date."
+          - name: MdaPotenciaModulos
+            description: "Module power in kW."
+          - name: MdaPotenciaInversores
+            description: "Inverter power in kW."
+          - name: QtdModulos
+            description: "Quantity of modules."
+          - name: NomModeloModulo
+            description: "Module model name."
+          - name: NomModeloInversor
+            description: "Inverter model name."
