@@ -78,23 +78,3 @@ O arquivo `.csv` utilizado neste projeto contém **12 colunas** e **3.643.608 de
 | 6    | Transformações e Modelagem de Dados      | DBT                                 | Criação de modelos em três camadas: `staging` (tipos), `intermediate` (limpeza/enriquecimento) e `mart` (fatos/dimensões).                            | ⚠ Não iniciada |
 | 7    | Execução Automatizada do Pipeline        | Apache Airflow                      | Orquestração de todas as etapas anteriores em um DAG com tarefas encadeadas (geração, upload, validação, DBT etc.).                                   | ⚠ Não iniciada |
 | 8    | Visualização e Análise de Métricas (op.) | Superset/Metabase                   | Criação de dashboards com métricas extraídas das tabelas da camada Gold para análise de negócio ou exploração interativa.                             | ⚠ Não iniciada |
-
----
-
-## 👥 Autores
-
-### 🧑‍🔧 Magno Hortêncio  
-📧 [magno.araujo@ceca.ufal.br](mailto:magno.araujo@ceca.ufal.br)  
-🔗 [LinkedIn](https://www.linkedin.com/in/magno-hortencio)
-
-> Me chamo Magno e atualmente sou estudante do curso de Engenharia de Energias pela UFAL. Tenho focado meus estudos e minha carreira como projetista, com especialização em sistemas fotovoltaicos e eficiência energética. Com isso, estou entusiasmado em aplicar meu conhecimento para criar soluções sustentáveis e inovadoras no campo das energias renováveis.
-
----
-
-### 👨‍💻 Luciano Júnior
-📧 [luciano.bezerra@fis.ufal.br](mailto:luciano.bezerra@fis.ufal.br)  
-🔗 [LinkedIn](https://www.linkedin.com/in/luciano-j-r-bezerra-jr-002634141/)
-
-> Me chamo Luciano, sou físico e também sou aluno do curso de Engenharia de Software pela Estácio. Tenho experiência em Física da Matéria Condensada, sou usuário linux e programo em C e Fortran desde 2015 no meio acadêmico. Além disso, já utilizei ferramentas Open Source para análise e visualização de dados tais como Python, Gnuplot e Grace. Já participei de outros cursos complementares como uma school de visualização de dados, onde tive um primeiro contato com Tableau e Power BI, Django Girls, Imersão Alura, GCP e New Relic. Tenho interesse na área de Dados, DevOps e em Desenvolvimento.
-
----
