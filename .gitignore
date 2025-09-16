@@ -16,6 +16,7 @@
 #.*/
 # Ignorar pastas:
 pasta/
+
 # Ignorar a pasta .ipynb_checkpoints, que serve para salvamento automático do jupyter.
 **/.ipynb_checkpoints/
 # Os dois asteriscos servem para ignorar essa pasta em qualquer local do projeto, inclusive dentro de subpastas.

@@ -1,7 +1,5 @@
 # This file contains the Python dependencies for the project's scripts.
 # Install them using: pip install -r requirements.txt
 
+# Pacotes para instalação
 pandas
-duckdb
-boto3
-s3fs
